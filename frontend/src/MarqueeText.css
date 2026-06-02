@@ -1,0 +1,28 @@
+.marquee {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  white-space: nowrap;
+}
+
+.marquee span {
+  display: inline-block;
+}
+
+.marquee.overflow {
+  animation: marquee 15s linear infinite;
+}
+
+.marquee-clone {
+  margin-left: 20px;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

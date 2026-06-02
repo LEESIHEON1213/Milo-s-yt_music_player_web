@@ -1,0 +1,1073 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.app {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-image 0.6s ease-in-out;
+  position: relative;
+  /* 곡 재생 전 기본 배경 (라이트) */
+  background-color: #eef1f6;
+}
+
+/* 시스템이 다크 모드면 기본 배경도 다크 */
+@media (prefers-color-scheme: dark) {
+  .app {
+    background-color: #14161c;
+  }
+}
+
+.app-bg-transition {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: -2;
+  animation: bgFadeIn 0.6s ease-in-out forwards;
+}
+
+@keyframes bgFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.app-overlay {
+  background: transparent;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.4s ease;
+}
+
+/* 곡 썸네일 배경이 깔렸을 때만 가독성용 어두운 막 */
+.app.has-bg .app-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* 기본(배경 없음) 다크 모드에서 살짝 더 어둡게 (선택) */
+@media (prefers-color-scheme: dark) {
+  .app:not(.has-bg) .app-overlay {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.header {
+  text-align: center;
+  color: white;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* 라이트 모드 + 배경 이미지 없을 때: 밝은 배경이라 헤더 글씨를 어둡게 */
+@media (prefers-color-scheme: light) {
+  .app:not(.has-bg) .header {
+    color: #2a2e3a;
+    text-shadow: none;
+  }
+}
+
+.header h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.header p {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.player-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.player {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: white;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.now-playing-thumb {
+  width: 100%;
+  max-width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 0 auto 20px;
+  display: block;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.now-playing {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.now-playing .uploader {
+  font-size: 14px;
+  color: #ffffff;
+  opacity: 0.85;
+  margin-top: 5px;
+  font-weight: normal;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.time-display {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-bottom: 20px;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.controls button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.controls button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controls .play-btn {
+  background: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  padding: 12px 28px;
+  min-width: 140px;
+  text-align: center;
+}
+
+.controls .play-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.volume-slider {
+  width: 150px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+}
+
+.volume-control span {
+  min-width: 40px;
+  text-align: right;
+  font-size: 12px;
+}
+
+.error-message {
+  background: rgba(255, 76, 76, 0.3);
+  border: 1px solid rgba(255, 76, 76, 0.6);
+  color: #ffcccc;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.tab-navigation {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid transparent;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+.content-section {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.4s ease-in-out;
+  border: 2px solid #667eea !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ranking-section {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none !important;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 2px solid #f0f0f0;
+  overflow-x: auto;
+}
+
+.category-tab {
+  background: #f5f5f5;
+  color: #333;
+  border: 2px solid #e0e0e0;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.category-tab:hover {
+  background: #e8e8e8;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.category-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.content-section form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.content-section button[type='submit'] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+.content-section button[type='submit']:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.content-section button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.result-item {
+  background: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.result-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.result-item .thumb {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.result-item .info {
+  padding: 12px;
+  flex: 1;
+}
+
+.result-item h4 {
+  font-size: 14px;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-item p {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-item .actions {
+  display: flex;
+  gap: 5px;
+  padding: 0 10px 10px;
+}
+
+.result-item .fav-btn {
+  background: rgba(255, 100, 100, 0.1);
+  color: #ff6464;
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  flex: 0.4;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.result-item .fav-btn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.6);
+}
+
+.result-item button:not(.fav-btn) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  flex: 1;
+  padding: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: opacity 0.2s;
+  border-radius: 4px;
+}
+
+.result-item button:not(.fav-btn):hover {
+  opacity: 0.8;
+}
+
+.content-section h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.queue-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.queue-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+  padding: 15px 20px !important;
+  background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%) !important;
+  border-radius: 8px !important;
+  border-left: 4px solid #667eea !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.2s !important;
+  flex-wrap: nowrap !important;
+}
+
+.queue-item:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+  transform: translateX(4px) !important;
+}
+
+.queue-item .index {
+  min-width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border-radius: 6px !important;
+  font-weight: bold !important;
+  flex-shrink: 0 !important;
+  text-align: center !important;
+}
+
+.queue-item .track-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin: 0 10px !important;
+}
+
+.queue-item .title {
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.queue-item .uploader {
+  font-size: 12px !important;
+  color: #888 !important;
+  margin: 4px 0 0 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.queue-item button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 14px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+  white-space: nowrap !important;
+  transition: all 0.2s !important;
+  flex-shrink: 0 !important;
+  font-size: 16px !important;
+}
+
+.queue-item button:hover {
+  opacity: 0.85 !important;
+  transform: scale(1.05) !important;
+}
+
+.queue-item button:active {
+  transform: scale(0.95) !important;
+}
+
+/* ── 대기열/즐겨찾기 — 랭킹보드 스타일로 통일 ── */
+.queue-item .queue-thumb {
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 글씨가 배경에 묻히지 않도록 명확한 색으로 고정 */
+.queue-item .track-info .title {
+  color: #1f2430 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+}
+
+.queue-item .track-info .uploader {
+  color: #5563d6 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+}
+
+.queue-item .track-info {
+  background: transparent !important;
+}
+
+/* 텍스트 드래그 선택 하이라이트 — 은은하게 (회색 가리개처럼 안 보이게) */
+.queue-item .track-info ::selection,
+.queue-item .track-info::selection {
+  background: rgba(102, 126, 234, 0.25);
+}
+
+/* 즐겨찾기 하트 배지 강조 */
+.queue-item.favorite-item .index.fav-badge {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c850c0 100%) !important;
+  font-size: 20px !important;
+  box-shadow: 0 2px 10px rgba(200, 80, 192, 0.45) !important;
+}
+
+.queue-item.favorite-item {
+  border-left-color: #ff6b9d !important;
+}
+
+/* 하트/썸네일/텍스트/버튼이 줄 어긋나지 않게 모두 세로 중앙 정렬 */
+.queue-item {
+  align-items: center !important;
+}
+
+.queue-item .index {
+  align-self: center !important;
+}
+
+.error {
+  color: #ff4c4c;
+  text-align: center;
+  padding: 15px;
+  background: #ffe8e8;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.ranking-table {
+  width: 100% !important;
+  display: table !important;
+  border-collapse: collapse !important;
+}
+
+.ranking-table tbody {
+  display: block !important;
+}
+
+.ranking-table tr {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 15px !important;
+  width: 100% !important;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+.ranking-table td {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 0 10px !important;
+}
+
+.ranking-table td:first-child {
+  flex: 0 0 50px !important;
+  text-align: center !important;
+}
+
+.ranking-table td:last-child {
+  flex: 0 0 100px !important;
+  text-align: center !important;
+}
+
+.app-footer {
+  background: rgba(0, 0, 0, 0.7);
+  color: #999;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.app-footer h4 {
+  color: #fff;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.app-footer a {
+  color: #667eea;
+  text-decoration: none;
+  margin: 0 8px;
+  transition: color 0.2s;
+}
+
+.app-footer a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .header p {
+    font-size: 14px;
+  }
+
+  .player {
+    padding: 20px;
+  }
+
+  .now-playing-thumb {
+    max-width: 150px;
+    height: 150px;
+  }
+
+  .results {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .controls {
+    gap: 5px;
+  }
+
+  .controls button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .category-tabs {
+    overflow-x: auto;
+  }
+
+  .content-section {
+    padding: 20px;
+  }
+
+  .tab-navigation {
+    gap: 5px;
+  }
+
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .queue-item {
+    padding: 10px 15px !important;
+    gap: 10px !important;
+  }
+
+  .queue-item button {
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* ───────────────────────────────────────────
+   신규 기능 스타일 (디자인 톤 유지)
+   ─────────────────────────────────────────── */
+
+/* 안내 메시지 ("곡을 재생해주세요" 등) */
+.notice-message {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* 비활성화된 컨트롤/시크바 (재생 곡 없을 때) */
+.progress-bar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 검색 결과 — 대기열 추가(➕) 버튼 */
+.result-item .queue-add-btn {
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  flex: 0.4;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.result-item .queue-add-btn:hover {
+  background: rgba(76, 175, 80, 0.22);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+/* 즐겨찾기 헤더 + 전체 추가 버튼 */
+.favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.favorites-header h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.add-all-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: transform 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.add-all-btn:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.add-all-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ───────────────────────────────────────────
+   모바일 최적화 (디자인 톤은 유지, 레이아웃만 재배치)
+   ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .app-overlay {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .header h1 {
+    font-size: 26px;
+  }
+
+  .header p {
+    font-size: 13px;
+  }
+
+  .player-container {
+    gap: 14px;
+  }
+
+  .player {
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+
+  .now-playing-thumb {
+    max-width: 130px;
+    height: 130px;
+    margin-bottom: 16px;
+  }
+
+  .now-playing {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  /* 컨트롤: 가로 1줄에 다 넣지 말고 모바일 친화적으로 줄바꿈 + 큰 터치영역 */
+  .controls {
+    gap: 8px;
+  }
+
+  .controls button {
+    flex: 1 1 30%;
+    min-width: 0;
+    padding: 12px 6px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .controls .play-btn {
+    flex: 1 1 100%;
+    order: -1;
+    min-width: 0;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .volume-control {
+    gap: 8px;
+  }
+
+  .volume-slider {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  /* 탭: 2x2 그리드로 보기 좋게 */
+  .tab-navigation {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .tab-btn {
+    padding: 12px 8px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .content-section {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+
+  /* 검색 폼: 세로 스택 */
+  .content-section form {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .content-section button[type='submit'] {
+    width: 100%;
+    padding: 12px;
+  }
+
+  /* 검색 결과: 1열 카드 */
+  .results {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .result-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .result-item .thumb {
+    width: 96px;
+    height: 72px;
+    flex-shrink: 0;
+  }
+
+  .result-item .info {
+    padding: 8px 10px;
+  }
+
+  .result-item .actions {
+    flex-direction: column;
+    padding: 8px;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .result-item .actions button {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  /* 즐겨찾기 헤더: 세로 스택 */
+  .favorites-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-all-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+  }
+
+  /* 대기열/즐겨찾기 아이템: 터치 친화 */
+  .queue-item {
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  .queue-item .index {
+    min-width: 34px !important;
+    height: 34px !important;
+    font-size: 13px !important;
+  }
+
+  .queue-item button {
+    padding: 10px 12px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* 음량 조절 오른쪽 고정 즐겨찾기 하트 버튼 (둥근 사각형 섹션) */
+.volume-control .fav-toggle-btn {
+  margin-left: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.volume-control .fav-toggle-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+}
+
+.volume-control .fav-toggle-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.volume-control .fav-toggle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d0f14"/>
+      <stop offset="100%" stop-color="#001a12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="38%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#00c896" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#00c896" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="80%" cy="50%" r="35%">
+      <stop offset="0%" stop-color="#f07800" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#f07800" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="clip"><rect width="1280" height="640"/></clipPath>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="1280" height="640" fill="url(#grad)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <rect width="1280" height="640" fill="url(#glow2)"/>
+
+  <!-- 장식용 원형 링 (오른쪽) -->
+  <circle cx="980" cy="320" r="270" fill="none" stroke="#00c896" stroke-width="1" opacity="0.10"/>
+  <circle cx="980" cy="320" r="210" fill="none" stroke="#00c896" stroke-width="1" opacity="0.08"/>
+  <circle cx="980" cy="320" r="150" fill="none" stroke="#f07800" stroke-width="1.5" opacity="0.12"/>
+
+  <!-- 음파 바 장식 -->
+  <g clip-path="url(#clip)" opacity="0.20">
+    <rect x="830" y="230" width="12" height="180" rx="6" fill="#00c896"/>
+    <rect x="858" y="175" width="12" height="290" rx="6" fill="#f07800"/>
+    <rect x="886" y="250" width="12" height="140" rx="6" fill="#00c896"/>
+    <rect x="914" y="205" width="12" height="230" rx="6" fill="#f07800"/>
+    <rect x="942" y="260" width="12" height="120" rx="6" fill="#00c896"/>
+    <rect x="970" y="188" width="12" height="264" rx="6" fill="#f07800"/>
+    <rect x="998" y="240" width="12" height="160" rx="6" fill="#00c896"/>
+    <rect x="1026" y="215" width="12" height="210" rx="6" fill="#f07800"/>
+    <rect x="1054" y="265" width="12" height="110" rx="6" fill="#00c896"/>
+    <rect x="1082" y="198" width="12" height="244" rx="6" fill="#f07800"/>
+    <rect x="1110" y="245" width="12" height="150" rx="6" fill="#00c896"/>
+    <rect x="1138" y="220" width="12" height="200" rx="6" fill="#f07800"/>
+    <rect x="1166" y="275" width="12" height="90"  rx="6" fill="#00c896"/>
+    <rect x="1194" y="205" width="12" height="230" rx="6" fill="#f07800"/>
+    <rect x="1222" y="255" width="12" height="130" rx="6" fill="#00c896"/>
+  </g>
+
+  <!-- 로고 원 (주황색 유지 — 시그니처) -->
+  <circle cx="148" cy="290" r="72" fill="#f07800" opacity="0.95"/>
+  <g fill="white" opacity="0.95">
+    <ellipse cx="133" cy="310" rx="16" ry="11" transform="rotate(-15,133,310)"/>
+    <rect x="147" y="268" width="6" height="44" rx="3"/>
+    <ellipse cx="163" cy="302" rx="16" ry="11" transform="rotate(-15,163,302)"/>
+    <rect x="177" y="260" width="6" height="44" rx="3"/>
+    <rect x="147" y="268" width="36" height="7" rx="3.5"/>
+  </g>
+
+  <!-- Web 뱃지 (로고 원 오른쪽 아래) -->
+  <rect x="192" y="340" width="52" height="22" rx="4" fill="#00c896" opacity="0.9"/>
+  <text x="218" y="356" text-anchor="middle"
+        font-family="'Segoe UI', monospace" font-size="12"
+        fill="#0d0f14" font-weight="700">WEB</text>
+
+  <!-- 타이틀 -->
+  <text x="248" y="278" font-family="'Segoe UI', 'Malgun Gothic', sans-serif"
+        font-size="62" font-weight="800" fill="white" opacity="0.97"
+        letter-spacing="-1">밀로's 플레이어</text>
+
+  <!-- 서브타이틀 -->
+  <text x="250" y="330" font-family="'Segoe UI', 'Malgun Gothic', sans-serif"
+        font-size="26" fill="#00c896" opacity="0.9" letter-spacing="1">
+    치지직 스트리머를 위한 유튜브 뮤직 플레이어 (웹)
+  </text>
+
+  <!-- 태그 뱃지들 -->
+  <g font-family="'Segoe UI', monospace" font-size="18" fill="white">
+    <!-- React -->
+    <rect x="250" y="368" width="110" height="34" rx="6" fill="#00c896" opacity="0.9"/>
+    <text x="305" y="390" text-anchor="middle" fill="#0d0f14" font-weight="700">React</text>
+    <!-- FastAPI -->
+    <rect x="372" y="368" width="120" height="34" rx="6" fill="#2a2a3a" stroke="#00c896" stroke-width="1.2" opacity="0.9"/>
+    <text x="432" y="390" text-anchor="middle">FastAPI</text>
+    <!-- YouTube API -->
+    <rect x="504" y="368" width="170" height="34" rx="6" fill="#2a2a3a" stroke="#f07800" stroke-width="1.2" opacity="0.9"/>
+    <text x="589" y="390" text-anchor="middle">YouTube API v3</text>
+    <!-- yt-dlp -->
+    <rect x="686" y="368" width="110" height="34" rx="6" fill="#2a2a3a" stroke="#f07800" stroke-width="1.2" opacity="0.9"/>
+    <text x="741" y="390" text-anchor="middle">yt-dlp</text>
+  </g>
+
+  <!-- 하단 URL -->
+  <text x="250" y="450" font-family="'Segoe UI', monospace" font-size="20"
+        fill="#00c896" opacity="0.50" letter-spacing="1">
+    2026-dmu-frontend-team10.duckdns.org
+  </text>
+</svg>

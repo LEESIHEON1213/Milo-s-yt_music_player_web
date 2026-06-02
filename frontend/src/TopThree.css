@@ -1,0 +1,281 @@
+.top-three {
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.top-three h2 {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 30px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.top-three-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 300px;
+}
+
+.top-three-container:empty::after {
+  content: '🔥 아직 데이터가 없습니다\A재생을 시작하면 순위가 업데이트됩니다';
+  white-space: pre;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.top-three-card {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s, box-shadow 0.3s;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.top-three-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.top-three-card:hover .overlay {
+  opacity: 1;
+}
+
+/* 순위별 스타일 */
+.top-three-card.rank-1 {
+  grid-column: span 1;
+  border: 3px solid gold;
+}
+
+.top-three-card.rank-2 {
+  border: 3px solid silver;
+}
+
+.top-three-card.rank-3 {
+  border: 3px solid #cd7f32;
+}
+
+.rank-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+.rank-badge span {
+  font-size: 12px;
+  margin-top: -2px;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.track-info {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.track-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.track-title {
+  display: block;
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.track-title:hover {
+  color: #ffd700;
+  text-decoration: underline;
+}
+
+.track-info .uploader {
+  margin: 5px 0;
+  font-size: 13px;
+  color: #ffffff;
+  opacity: 0.95;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-info .play-count {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.category-tag {
+  display: inline-block;
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.overlay button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+.overlay button:hover {
+  transform: scale(1.1);
+}
+
+.top-three.loading {
+  text-align: center;
+  padding: 40px;
+  color: white;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .top-three-container {
+    grid-template-columns: 1fr;
+  }
+
+  .top-three h2 {
+    font-size: 24px;
+  }
+}
+
+/* 오버레이 버튼 2개 (재생 + 추가) */
+.overlay {
+  gap: 10px;
+}
+
+.overlay .overlay-add {
+  background: rgba(76, 175, 80, 0.85);
+}
+
+.overlay .overlay-add:hover {
+  transform: scale(1.1);
+  background: rgba(76, 175, 80, 1);
+}
+
+/* 재생수: 카드 내 항상 같은 위치(제목 아래 고정열)에 표시되도록 — 기존 구조 유지 */
+.track-info .play-count {
+  display: inline-block;
+}
+
+@media (max-width: 600px) {
+  .top-three {
+    padding: 18px 14px;
+    margin-bottom: 24px;
+  }
+
+  .top-three h2 {
+    font-size: 20px;
+    margin-bottom: 18px;
+  }
+
+  .top-three-container {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 14px;
+  }
+
+  .thumbnail {
+    height: 170px;
+  }
+
+  /* 모바일: 오버레이를 항상 보이게(터치엔 호버가 없음) */
+  .overlay {
+    position: static;
+    opacity: 1;
+    background: transparent;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .top-three-card .overlay button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .rank-badge {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+}

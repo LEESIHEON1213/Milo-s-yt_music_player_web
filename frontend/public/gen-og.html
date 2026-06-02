@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin:0;padding:0;background:#fff;">
+  <canvas id="c" width="1200" height="630" style="display:block;"></canvas>
+  <script>
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+    
+    // 배경 그래디언트
+    const g = ctx.createLinearGradient(0, 0, 1200, 630);
+    g.addColorStop(0, '#667eea');
+    g.addColorStop(1, '#764ba2');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1200, 630);
+    
+    // 텍스트
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 80px Noto Sans KR, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('♬ 밀로\'s 플레이어', 600, 200);
+    
+    ctx.font = 'normal 40px Noto Sans KR, sans-serif';
+    ctx.fillText('YouTube 기반 웹 뮤직 플레이어', 600, 300);
+    ctx.fillText('즐겨찾기 • 랭킹 • 셔플 재생', 600, 380);
+    
+    // PNG 다운로드
+    c.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'og-image.png';
+      a.click();
+    });
+  </script>
+</body>
+</html>

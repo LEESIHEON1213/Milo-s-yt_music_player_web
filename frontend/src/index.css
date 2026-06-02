@@ -1,0 +1,64 @@
+/* ── 리셋 & 기본 ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* 니나마무 테마 (기본) */
+  --bg:        #1a1a2e;
+  --bg2:       #16213e;
+  --bg3:       #0f3460;
+  --accent:    #f07800;
+  --accent2:   #ff9a3c;
+  --text:      #e0e0e0;
+  --text-sub:  #888;
+  --border:    rgba(255,255,255,0.08);
+  --hover:     rgba(255,255,255,0.06);
+  --radius:    10px;
+  --shadow:    0 4px 24px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+
+/* 공통 버튼 */
+button {
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text);
+  transition: all 0.15s ease;
+}
+
+input {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 마퀴 애니메이션 */
+@keyframes marquee {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* 스피너 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
