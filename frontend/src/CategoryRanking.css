@@ -1,14 +1,18 @@
 .ranking-board {
   padding: 30px;
-  background: white;
+  background: #ffffff;
+  background: var(--section-bg, #ffffff);
+  color: var(--section-text, #1a1d29);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--section-shadow);
+  overflow: hidden;
+  border: 2px solid #667eea;
 }
 
 .ranking-board h2 {
   font-size: 24px;
   margin-bottom: 20px;
-  color: #333;
+  color: var(--section-text);
   border-bottom: 3px solid #667eea;
   padding-bottom: 10px;
 }
@@ -16,7 +20,7 @@
 .ranking-board.loading {
   text-align: center;
   padding: 60px 30px;
-  color: #666;
+  color: var(--section-sub);
   font-size: 18px;
 }
 
@@ -40,7 +44,7 @@
 }
 
 .ranking-table {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--card-border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -89,7 +93,8 @@
   grid-template-columns: 60px 80px 1fr 80px 110px;
   gap: 10px;
   padding: 12px 15px;
-  border-bottom: 1px solid #f0f0f0;
+  background: var(--section-bg, #ffffff);
+  border-bottom: 1px solid var(--card-border);
   align-items: center;
   transition: background-color 0.2s;
   animation: slideIn 0.3s ease-out;
@@ -107,7 +112,7 @@
 }
 
 .table-row:hover {
-  background-color: #f9f9f9;
+  background-color: var(--card-bg, #f3f5fb);
 }
 
 .table-row:last-child {
@@ -162,7 +167,7 @@
   gap: 5px;
 }
 
-.title {
+.ranking-table .title {
   font-weight: 600;
   color: #667eea;
   white-space: nowrap;
@@ -174,14 +179,14 @@
   display: block;
 }
 
-.title:hover {
+.ranking-table .title:hover {
   color: #764ba2;
   text-decoration: underline;
 }
 
-.uploader {
+.ranking-table .uploader {
   font-size: 13px;
-  color: #666;
+  color: var(--section-sub);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -223,13 +228,13 @@
   align-items: center;
   margin-top: 25px;
   padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--card-border);
 }
 
 .pagination-btn {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  color: var(--section-text);
+  border: 1px solid var(--card-border);
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -250,32 +255,32 @@
 
 .page-info {
   font-weight: bold;
-  color: #333;
+  color: var(--section-text);
   min-width: 120px;
   text-align: center;
 }
 
 @media (max-width: 768px) {
-  .table-header,
-  .table-row {
-    grid-template-columns: 40px 60px 1fr 50px;
-  }
-
-  .col-action {
-    display: none;
-  }
-
-  .col-info {
-    cursor: pointer;
-  }
-
   .ranking-table {
     font-size: 14px;
   }
-
+  /* 태블릿: 재생수 전용 컬럼 숨기고(배지로 대체), 액션은 유지 */
+  .table-header {
+    grid-template-columns: 36px 52px 1fr 84px;
+  }
+  .table-header .col-plays {
+    display: none;
+  }
+  .table-row {
+    grid-template-columns: 36px 52px minmax(0, 1fr) 84px;
+    gap: 8px;
+  }
+  .table-row .col-plays {
+    display: none;
+  }
   .col-thumbnail img {
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
   }
 }
 
@@ -321,58 +326,61 @@
    ─────────────────────────────────────────── */
 @media (max-width: 600px) {
   .ranking-board {
-    padding: 16px 12px;
+    padding: 14px 10px;
   }
 
   .ranking-board h2 {
     font-size: 18px;
   }
 
-  /* 재생수 + 액션을 한 컬럼군으로, 그래도 세로열 정렬 유지 */
   .table-header {
     display: none;
   }
 
+  /* 순위 | 썸네일 | 정보(가변) | 액션 — 합이 화면을 넘지 않게 minmax(0,1fr) */
   .table-row {
-    grid-template-columns: 44px 56px 1fr auto;
-    gap: 8px;
-    padding: 10px 8px;
+    grid-template-columns: 30px 44px minmax(0, 1fr) 76px;
+    gap: 7px;
+    padding: 9px 6px;
   }
 
-  /* 재생수: 제목 아래가 아니라 액션 옆 고정열 유지 → 작은 배지로 */
-  .col-plays {
+  .table-row .col-plays {
     display: none;
   }
 
   .col-thumbnail img {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
   }
 
   .rank-number {
-    width: 32px;
-    height: 32px;
-    font-size: 13px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .col-info {
+    min-width: 0;
+  }
+
+  .col-info .title {
+    font-size: 13.5px;
   }
 
   .col-action {
-    gap: 6px;
+    gap: 5px;
   }
 
   .col-action .play-btn,
   .col-action .queue-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 15px;
-  }
-
-  /* 모바일에선 재생수를 제목 줄 옆 작은 배지로 보여 정보 손실 방지 */
-  .col-info .uploader::after {
-    content: '';
+    width: 33px;
+    height: 33px;
+    font-size: 14px;
   }
 
   .pagination {
     gap: 6px;
+    flex-wrap: wrap;
   }
 
   .pagination-btn {
