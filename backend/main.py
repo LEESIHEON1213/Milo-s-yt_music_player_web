@@ -45,6 +45,14 @@ PROXY = os.getenv("HTTP_PROXY") or None
 if not PROXY:
     logger.warning("⚠️ HTTP_PROXY 미설정 — 프록시 없이 직접 연결합니다")
 
+# 유튜브 쿠키 파일 (있으면 yt-dlp에 --cookies 로 전달, 봇 차단 우회용)
+YOUTUBE_COOKIES = os.getenv("YOUTUBE_COOKIES") or None
+if YOUTUBE_COOKIES and os.path.isfile(YOUTUBE_COOKIES):
+    logger.info(f"🍪 쿠키 파일 사용: {YOUTUBE_COOKIES}")
+elif YOUTUBE_COOKIES:
+    logger.warning(f"⚠️ YOUTUBE_COOKIES 경로에 파일이 없음: {YOUTUBE_COOKIES}")
+    YOUTUBE_COOKIES = None
+
 YT_API_TIMEOUT = int(os.getenv("YT_API_TIMEOUT", "30"))
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "2"))
 MAX_PLAYLIST_SIZE = int(os.getenv("MAX_PLAYLIST_SIZE", "500"))
@@ -143,7 +151,10 @@ def run_ytdlp(
     
     for attempt in range(1, retries + 1):
         try:
-            cmd = [find_ytdlp()] + (["--proxy", PROXY] if PROXY else []) + ["--remote-components", "ejs:github"] + args
+            cmd = [find_ytdlp()] \
+                + (["--proxy", PROXY] if PROXY else []) \
+                + (["--cookies", YOUTUBE_COOKIES] if YOUTUBE_COOKIES else []) \
+                + ["--remote-components", "ejs:github"] + args
             
             result = subprocess.run(
                 cmd,
