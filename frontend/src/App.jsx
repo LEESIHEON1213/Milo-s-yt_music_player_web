@@ -54,6 +54,7 @@ export default function App() {
   const dragIdx = useRef(null)
   // 자동재생 가드: 첫 곡을 막 시작했는지 추적 (state 비동기 race 방지)
   const startingRef = useRef(false)
+  const retryingRef = useRef(false)
 
   useEffect(() => {
     fetchCategories()
@@ -85,10 +86,20 @@ export default function App() {
 
     const onTimeUpdate = () => setCurrentTime(Math.floor(audio.currentTime))
     const onDuration = () => setDuration(Math.floor(audio.duration) || 0)
-    const onPlay = () => setPlaying(true)
+    const onPlay = () => { setPlaying(true); retryingRef.current = false }
     const onPause = () => setPlaying(false)
     const onEnded = () => handleTrackEnd()
     const onError = () => {
+      // URL 만료(시간 지나 fetch 실패) 등 → 같은 곡을 fresh URL로 1회 재시도
+      if (currentTrack && !retryingRef.current) {
+        retryingRef.current = true
+        setError('재생 링크를 새로 받아오는 중...')
+        setTimeout(() => setError(''), 2500)
+        playTrack(currentTrack)   // playTrack은 항상 새로 resolve → 새 스트림 URL
+        return
+      }
+      // 재시도도 실패 → 다음 곡으로
+      retryingRef.current = false
       setError('재생 오류. 다음 곡으로 넘어갑니다.')
       setTimeout(() => setError(''), 3000)
       handleTrackEnd()
@@ -194,6 +205,7 @@ export default function App() {
         } catch (e) { /* 무시 */ }
       }
     } catch (err) {
+      retryingRef.current = false
       setError(`재생 실패: ${err.message}`)
       setTimeout(() => handleTrackEnd(), 2000)
     } finally {
