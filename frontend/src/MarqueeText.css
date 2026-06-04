@@ -26,3 +26,9 @@
     transform: translateX(-100%);
   }
 }
+
+/* 부모 폭을 넘지 않게 가두기 (모바일 제목 튀어나감 방지) */
+.marquee {
+  max-width: 100%;
+  box-sizing: border-box;
+}

@@ -101,6 +101,16 @@ export default function App() {
     audio.addEventListener('ended', onEnded)
     audio.addEventListener('error', onError)
 
+    // 잠금화면/알림 미디어 컨트롤 → 백그라운드에서도 동작
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => { audio.play().catch(() => {}) })
+      navigator.mediaSession.setActionHandler('pause', () => { audio.pause() })
+      navigator.mediaSession.setActionHandler('nexttrack', () => { handleTrackEnd() })
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (audio.currentTime > 3) { audio.currentTime = 0 } else { audio.currentTime = 0 }
+      })
+    }
+
     return () => {
       audio.removeEventListener('timeupdate', onTimeUpdate)
       audio.removeEventListener('durationchange', onDuration)
@@ -162,7 +172,27 @@ export default function App() {
       }, 600)
 
       audioRef.current.src = data.url
-      audioRef.current.play()
+      const playPromise = audioRef.current.play()
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(() => {})
+      }
+
+      // OS 잠금화면/알림 미디어 컨트롤 연동 (백그라운드 연속재생 안정화)
+      if ('mediaSession' in navigator) {
+        try {
+          const validTitle = (newTrack.title && /[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]/.test(newTrack.title))
+            ? newTrack.title : '재생 중'
+          navigator.mediaSession.metadata = new window.MediaMetadata({
+            title: validTitle,
+            artist: newTrack.uploader || '',
+            album: "밀로's 플레이어",
+            artwork: newTrack.thumbnail
+              ? [{ src: newTrack.thumbnail, sizes: '512x512', type: 'image/jpeg' }]
+              : [],
+          })
+          navigator.mediaSession.playbackState = 'playing'
+        } catch (e) { /* 무시 */ }
+      }
     } catch (err) {
       setError(`재생 실패: ${err.message}`)
       setTimeout(() => handleTrackEnd(), 2000)
@@ -405,7 +435,8 @@ export default function App() {
             {error && <div className="error-message">{error}</div>}
           </div>
 
-          <audio ref={audioRef} crossOrigin="anonymous" />
+          <audio ref={audioRef} crossOrigin="anonymous" playsInline preload="auto" />
+
 
           <div className="tab-navigation">
             <button
@@ -543,7 +574,7 @@ export default function App() {
                       <img src={track.thumbnail} alt="" className="queue-thumb" loading="lazy" />
                     )}
                     <div className="track-info">
-                      <p className="title">{(track.title && /[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]/.test(track.title)) ? track.title : (track.url || '제목 없음')}</p>
+                      <a className="title" href={track.url} target="_blank" rel="noopener noreferrer">{(track.title && /[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]/.test(track.title)) ? track.title : (track.url || '제목 없음')}</a>
                       <p className="uploader">{track.uploader}</p>
                     </div>
                     <button onClick={() => playTrack(track)} title="재생">▶️</button>
@@ -576,7 +607,7 @@ export default function App() {
                       <img src={track.thumbnail} alt="" className="queue-thumb" loading="lazy" />
                     )}
                     <div className="track-info">
-                      <p className="title">{(track.title && /[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]/.test(track.title)) ? track.title : (track.url || '제목 없음')}</p>
+                      <a className="title" href={track.url} target="_blank" rel="noopener noreferrer">{(track.title && /[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]/.test(track.title)) ? track.title : (track.url || '제목 없음')}</a>
                       <p className="uploader">{track.uploader}</p>
                     </div>
                     <button onClick={() => addToQueue(track)} title="재생">▶️</button>

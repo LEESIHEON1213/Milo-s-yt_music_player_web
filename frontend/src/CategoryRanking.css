@@ -51,7 +51,7 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 60px 80px 1fr 80px 110px;
+  grid-template-columns: 60px 80px minmax(0, 1fr) 80px 110px;
   gap: 10px;
   padding: 15px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -90,7 +90,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 60px 80px 1fr 80px 110px;
+  grid-template-columns: 60px 80px minmax(0, 1fr) 80px 110px;
   gap: 10px;
   padding: 12px 15px;
   background: var(--section-bg, #ffffff);
@@ -165,6 +165,8 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ranking-table .title {
@@ -177,6 +179,7 @@
   cursor: pointer;
   transition: all 0.2s;
   display: block;
+  max-width: 100%;
 }
 
 .ranking-table .title:hover {
@@ -190,6 +193,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .play-badge {
@@ -260,27 +264,110 @@
   text-align: center;
 }
 
+/* ════════════════════════════════════════════════
+   모바일/태블릿 전용 랭킹 UI (≤768px)
+   데스크톱 가로 테이블을 버리고 '세로 카드'로 재구성.
+   제목이 가로폭을 다 쓰고 2줄까지 펼쳐져 안 잘림.
+   ════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .ranking-table {
-    font-size: 14px;
+  .ranking-board {
+    padding: clamp(12px, 4vw, 20px);
   }
-  /* 태블릿: 재생수 전용 컬럼 숨기고(배지로 대체), 액션은 유지 */
+
+  .ranking-board h2 {
+    font-size: clamp(16px, 4.5vw, 20px);
+  }
+
+  /* 헤더(순위/제목/재생수/담기)는 모바일에서 숨김 */
   .table-header {
-    grid-template-columns: 36px 52px 1fr 84px;
-  }
-  .table-header .col-plays {
     display: none;
   }
+
+  .ranking-table {
+    border: none;
+  }
+
+  /* 행: grid 해제 → flex 카드 */
   .table-row {
-    grid-template-columns: 36px 52px minmax(0, 1fr) 84px;
-    gap: 8px;
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    grid-template-columns: none !important;
+    border-bottom: 1px solid var(--card-border);
   }
-  .table-row .col-plays {
-    display: none;
+
+  /* 순위 뱃지 */
+  .table-row .col-rank {
+    flex: 0 0 auto;
+  }
+  .rank-number {
+    width: clamp(26px, 7vw, 32px);
+    height: clamp(26px, 7vw, 32px);
+    font-size: clamp(11px, 3.2vw, 14px);
+  }
+
+  /* 썸네일 */
+  .table-row .col-thumbnail {
+    flex: 0 0 auto;
   }
   .col-thumbnail img {
-    width: 52px;
-    height: 52px;
+    width: clamp(48px, 14vw, 64px);
+    height: clamp(48px, 14vw, 64px);
+  }
+
+  /* 제목/채널: 남은 폭 다 차지 + 제목 2줄까지 펼침(안 자름) */
+  .col-info {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: visible;
+  }
+  .ranking-table .title {
+    white-space: normal;          /* 한 줄 강제 해제 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;        /* 최대 2줄 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: clamp(14px, 3.8vw, 16px);
+    line-height: 1.3;
+    max-width: 100%;
+  }
+  .ranking-table .uploader {
+    white-space: normal;
+    font-size: clamp(11px, 3vw, 13px);
+  }
+
+  /* 재생수 배지 + 액션 버튼을 한 줄에 모아 우측 정렬 */
+  .col-plays {
+    display: flex !important;
+    flex: 0 0 auto;
+    order: 3;
+  }
+  .col-action {
+    flex: 0 0 auto;
+    order: 4;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .col-action .play-btn,
+  .col-action .queue-btn {
+    width: clamp(36px, 10vw, 44px);
+    height: clamp(36px, 10vw, 44px);
+    font-size: clamp(14px, 4vw, 16px);
+  }
+
+  .pagination {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pagination-btn {
+    padding: 8px 10px;
+  }
+  .page-info {
+    min-width: auto;
+    font-size: 13px;
   }
 }
 
@@ -322,91 +409,19 @@
 }
 
 /* ───────────────────────────────────────────
-   모바일 최적화 (≤600px) — 컴팩트 정렬
+   소형 폰 미세조정 (≤400px) — 카드 레이아웃은 768px 블록을 따름
    ─────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .ranking-board {
-    padding: 14px 10px;
-  }
-
-  .ranking-board h2 {
-    font-size: 18px;
-  }
-
-  .table-header {
-    display: none;
-  }
-
-  /* 순위 | 썸네일 | 정보(가변) | 액션 — 합이 화면을 넘지 않게 minmax(0,1fr) */
+@media (max-width: 400px) {
   .table-row {
-    grid-template-columns: 30px 44px minmax(0, 1fr) 76px;
-    gap: 7px;
-    padding: 9px 6px;
+    gap: 8px;
+    padding: 10px 8px;
   }
-
-  .table-row .col-plays {
-    display: none;
-  }
-
-  .col-thumbnail img {
-    width: 44px;
-    height: 44px;
-  }
-
-  .rank-number {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
   .col-info {
-    min-width: 0;
+    flex-basis: 100%;
+    order: 5;
   }
-
-  .col-info .title {
-    font-size: 13.5px;
-  }
-
+  /* 좁은 폰: 순위+썸네일 윗줄, 제목 아랫줄 풀폭, 버튼 그 아래 */
   .col-action {
-    gap: 5px;
-  }
-
-  .col-action .play-btn,
-  .col-action .queue-btn {
-    width: 33px;
-    height: 33px;
-    font-size: 14px;
-  }
-
-  .pagination {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .pagination-btn {
-    padding: 8px 10px;
-  }
-
-  .page-info {
-    min-width: auto;
-    font-size: 13px;
-  }
-}
-
-/* 인라인 재생수 배지 — 데스크톱에선 숨김(전용 컬럼 사용), 모바일에서만 표시 */
-.plays-inline {
-  display: none;
-}
-@media (max-width: 600px) {
-  .plays-inline {
-    display: inline-block;
-    margin-left: 8px;
-    background: #667eea;
-    color: #fff;
-    padding: 1px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    vertical-align: middle;
+    margin-left: 0;
   }
 }

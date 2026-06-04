@@ -505,12 +505,12 @@ def get_categories():
 def health():
     """상태 확인"""
     ytdlp_ok = shutil.which("yt-dlp") is not None
-    data_ok = stats.stats_file.exists()
+    data_ok = stats.db_file.exists()
     return {
         "status": "ok",
         "ytdlp": ytdlp_ok,
         "data_file": data_ok,
-        "total_tracks": len(stats.stats)
+        "total_tracks": stats.count_tracks()
     }
 
 # ─────────────────────────────────────────────

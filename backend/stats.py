@@ -1,75 +1,129 @@
 """
 통계 관리: 재생 데이터 저장/로드, 랭킹 계산, 카테고리 분류
+SQLite 기반 — 다중 워커 환경에서도 원자적 UPSERT로 동시성 안전 (재생수 롤백 방지)
 """
 
 import json
 import os
 import re
+import sqlite3
 import logging
+import threading
 from pathlib import Path
 from typing import Optional, Dict, List
-from collections import Counter
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class PlaybackStats:
-    """재생 통계 관리"""
-    
+    """재생 통계 관리 (SQLite)"""
+
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
-        self.stats_file = self.data_dir / "playback_stats.json"
-        self.load()
-    
-    def load(self):
-        """JSON에서 통계 로드"""
-        if self.stats_file.exists():
-            try:
-                with open(self.stats_file, "r", encoding="utf-8") as f:
-                    self.stats = json.load(f)
-                    logger.info(f"✅ 통계 로드: {len(self.stats)} 항목")
-            except Exception as e:
-                logger.error(f"❌ 통계 로드 실패: {e}")
-                self.stats = {}
-        else:
-            self.stats = {}
-            logger.info("📝 새 통계 파일 생성")
-    
-    def save(self):
-        """JSON에 통계 저장"""
+        self.db_file = self.data_dir / "playback_stats.db"
+        self.json_file = self.data_dir / "playback_stats.json"  # 기존 데이터 (마이그레이션용)
+        self._local = threading.local()
+        self._init_db()
+        self._migrate_from_json()
+
+    # ── DB 연결 (워커/스레드별로 분리) ──────────────────────────
+    def _conn(self) -> sqlite3.Connection:
+        conn = getattr(self._local, "conn", None)
+        if conn is None:
+            conn = sqlite3.connect(
+                str(self.db_file),
+                timeout=10.0,            # 잠금 대기 (동시 쓰기 충돌 방지)
+                check_same_thread=False,
+            )
+            conn.row_factory = sqlite3.Row
+            # WAL 모드: 동시 읽기/쓰기 성능 + 안정성 향상
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute("PRAGMA busy_timeout=10000;")
+            self._local.conn = conn
+        return conn
+
+    def _init_db(self):
+        conn = self._conn()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS playback (
+                video_id     TEXT PRIMARY KEY,
+                url          TEXT,
+                title        TEXT,
+                thumbnail    TEXT,
+                uploader     TEXT,
+                duration     INTEGER,
+                category     TEXT,
+                play_count   INTEGER NOT NULL DEFAULT 0,
+                first_played TEXT,
+                last_played  TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_play_count ON playback(play_count DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_category ON playback(category)")
+        conn.commit()
+        logger.info("✅ SQLite 통계 DB 준비 완료")
+
+    def _migrate_from_json(self):
+        """기존 playback_stats.json 데이터를 DB로 1회 이전 (DB가 비어있을 때만)"""
+        conn = self._conn()
+        cur = conn.execute("SELECT COUNT(*) AS c FROM playback")
+        if cur.fetchone()["c"] > 0:
+            return  # 이미 데이터 있음 → 마이그레이션 안 함
+        if not self.json_file.exists():
+            return
         try:
-            with open(self.stats_file, "w", encoding="utf-8") as f:
-                json.dump(self.stats, f, ensure_ascii=False, indent=2)
-            logger.debug(f"💾 통계 저장: {len(self.stats)} 항목")
+            with open(self.json_file, "r", encoding="utf-8") as f:
+                old = json.load(f)
+            if not isinstance(old, dict) or not old:
+                return
+            for vid, item in old.items():
+                conn.execute("""
+                    INSERT OR IGNORE INTO playback
+                    (video_id, url, title, thumbnail, uploader, duration, category,
+                     play_count, first_played, last_played)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    item.get("video_id", vid),
+                    item.get("url", ""),
+                    item.get("title", ""),
+                    item.get("thumbnail", ""),
+                    item.get("uploader", ""),
+                    item.get("duration", 0),
+                    item.get("category", "Uncategorized"),
+                    item.get("play_count", 0),
+                    item.get("first_played", self._timestamp()),
+                    item.get("last_played", self._timestamp()),
+                ))
+            conn.commit()
+            # 기존 JSON 백업 (덮어쓰기 방지)
+            backup = self.json_file.with_suffix(".json.migrated")
+            try:
+                self.json_file.rename(backup)
+            except Exception:
+                pass
+            logger.info(f"✅ 기존 JSON → SQLite 마이그레이션 완료: {len(old)} 항목")
         except Exception as e:
-            logger.error(f"❌ 통계 저장 실패: {e}")
-    
+            logger.error(f"❌ JSON 마이그레이션 실패: {e}")
+
+    # ── URL / 제목 유틸 (기존과 동일) ───────────────────────────
     @staticmethod
     def _get_video_id(url: str) -> Optional[str]:
-        """
-        YouTube URL → video_id 추출
-        지원: youtube.com/watch?v=..., youtu.be/..., youtube.com/playlist?list=...
-        """
         if not url:
             return None
-        
         try:
-            # youtu.be 형식
             if "youtu.be/" in url:
                 return url.split("youtu.be/")[1].split("?")[0]
-            
-            # youtube.com 형식
             if "youtube.com" in url:
                 if "playlist" in url:
-                    # 재생목록이면 None (개별 곡만 추적)
                     return None
                 parsed = urlparse(url)
                 if parsed.query:
                     params = parse_qs(parsed.query)
                     return params.get("v", [None])[0]
-            
             return None
         except Exception as e:
             logger.warning(f"⚠️ Video ID 추출 실패 ({url[:50]}...): {e}")
@@ -77,128 +131,140 @@ class PlaybackStats:
 
     @staticmethod
     def _normalize_title(title: str, url: str = "") -> str:
-        """
-        제목 정규화.
-        제목이 비어있거나, 이모지/기호/변형문자 등 '읽을 수 있는 본문 글자'가
-        하나도 없으면 링크(URL)를 제목 대신 사용한다.
-        (예: 'ᶜ(ᵒᵕᵒ)ᕤ', '♬', '😀', 공백만 등 → URL)
-        본문 글자 = 기본 라틴 영숫자 / 한글 / 히라가나·가타카나 / 기본 CJK 한자
-        URL도 없으면 '제목 없음'.
-        """
         if title:
             stripped = title.strip()
             if stripped and re.search(r"[A-Za-z0-9가-힣ぁ-んァ-ヶ一-鿿]", stripped):
                 return stripped
-        # 유효한 제목이 없으면 링크를 제목으로
         return url.strip() if url and url.strip() else "제목 없음"
-    
-    def record_playback(self, url: str, title: str, thumbnail: str, 
-                       uploader: str, duration: int, category: str = "Uncategorized"):
-        """
-        재생 기록 저장
-        같은 video_id로 중복 제거
-        """
+
+    # ── 재생 기록 (원자적 UPSERT — 롤백 불가) ───────────────────
+    def record_playback(self, url: str, title: str, thumbnail: str,
+                         uploader: str, duration: int, category: str = "Uncategorized"):
         video_id = self._get_video_id(url)
         if not video_id:
             logger.warning(f"⚠️ 유효하지 않은 URL: {url[:50]}...")
             return False
 
-        # 이모지/특수문자뿐인 제목은 링크(URL)를 제목으로 사용
         title = self._normalize_title(title, url)
+        now = self._timestamp()
+        conn = self._conn()
+        try:
+            # 한 번의 원자적 쿼리로 INSERT 또는 play_count+1.
+            # 동시에 여러 워커가 호출해도 DB가 직렬화하므로 정확히 누적됨.
+            conn.execute("""
+                INSERT INTO playback
+                    (video_id, url, title, thumbnail, uploader, duration, category,
+                     play_count, first_played, last_played)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                ON CONFLICT(video_id) DO UPDATE SET
+                    play_count  = play_count + 1,
+                    last_played = excluded.last_played,
+                    title       = excluded.title,
+                    thumbnail   = excluded.thumbnail,
+                    uploader    = excluded.uploader,
+                    category    = excluded.category
+            """, (video_id, url, title, thumbnail, uploader, duration, category, now, now))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"❌ 재생 기록 실패: {e}")
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+            return False
 
-        # 기존 항목이 있으면 재생 수 증가
-        if video_id in self.stats:
-            self.stats[video_id]["play_count"] += 1
-            logger.info(f"🔄 재생 기록 업데이트: {title[:30]}... (총 {self.stats[video_id]['play_count']}회)")
-        else:
-            # 새 항목 추가
-            self.stats[video_id] = {
-                "video_id": video_id,
-                "url": url,
-                "title": title,
-                "thumbnail": thumbnail,
-                "uploader": uploader,
-                "duration": duration,
-                "category": category,
-                "play_count": 1,
-                "first_played": self._timestamp(),
-                "last_played": self._timestamp()
-            }
-            logger.info(f"✨ 새 항목 기록: {title[:30]}...")
-        
-        # 마지막 재생 시간 업데이트
-        self.stats[video_id]["last_played"] = self._timestamp()
-        self.save()
-        return True
-    
-    def get_top_ranked(self, limit: int = 3, category: str = None) -> List[Dict]:
-        """
-        상위 랭킹 조회
-        category: None이면 전체, 특정 카테고리만 필터
-        """
-        items = self.stats.values()
-        
-        # 카테고리 필터
-        if category and category != "All":
-            items = [item for item in items if item.get("category") == category]
-        
-        # 재생 수 기준 정렬
-        ranked = sorted(
-            items,
-            key=lambda x: x["play_count"],
-            reverse=True
-        )
-        
-        return ranked[:limit]
-    
-    def get_ranking_page(self, page: int = 1, page_size: int = 10, 
-                         category: str = None) -> Dict:
-        """
-        페이지네이션된 랭킹 조회
-        """
-        items = self.stats.values()
-        
-        # 카테고리 필터
-        if category and category != "All":
-            items = [item for item in items if item.get("category") == category]
-        
-        # 재생 수 기준 정렬
-        ranked = sorted(
-            items,
-            key=lambda x: x["play_count"],
-            reverse=True
-        )
-        
-        # 페이지네이션
-        total = len(ranked)
-        start = (page - 1) * page_size
-        end = start + page_size
-        
+    # ── 조회 ────────────────────────────────────────────────────
+    def _row_to_dict(self, row: sqlite3.Row) -> Dict:
         return {
-            "items": ranked[start:end],
+            "video_id": row["video_id"],
+            "url": row["url"],
+            "title": row["title"],
+            "thumbnail": row["thumbnail"],
+            "uploader": row["uploader"],
+            "duration": row["duration"],
+            "category": row["category"],
+            "play_count": row["play_count"],
+            "first_played": row["first_played"],
+            "last_played": row["last_played"],
+        }
+
+    def get_top_ranked(self, limit: int = 3, category: str = None) -> List[Dict]:
+        conn = self._conn()
+        if category and category != "All":
+            cur = conn.execute(
+                "SELECT * FROM playback WHERE category = ? ORDER BY play_count DESC, last_played DESC LIMIT ?",
+                (category, limit),
+            )
+        else:
+            cur = conn.execute(
+                "SELECT * FROM playback ORDER BY play_count DESC, last_played DESC LIMIT ?",
+                (limit,),
+            )
+        return [self._row_to_dict(r) for r in cur.fetchall()]
+
+    def get_ranking_page(self, page: int = 1, page_size: int = 10,
+                         category: str = None) -> Dict:
+        conn = self._conn()
+        where = ""
+        params: list = []
+        if category and category != "All":
+            where = "WHERE category = ?"
+            params.append(category)
+
+        total = conn.execute(
+            f"SELECT COUNT(*) AS c FROM playback {where}", params
+        ).fetchone()["c"]
+
+        offset = (page - 1) * page_size
+        cur = conn.execute(
+            f"SELECT * FROM playback {where} ORDER BY play_count DESC, last_played DESC LIMIT ? OFFSET ?",
+            params + [page_size, offset],
+        )
+        items = [self._row_to_dict(r) for r in cur.fetchall()]
+
+        return {
+            "items": items,
             "page": page,
             "page_size": page_size,
             "total": total,
-            "total_pages": (total + page_size - 1) // page_size
+            "total_pages": (total + page_size - 1) // page_size,
         }
-    
-    def get_categories(self) -> List[str]:
-        """모든 카테고리 목록"""
-        categories = set()
-        for item in self.stats.values():
-            cat = item.get("category", "Uncategorized")
-            if cat:
-                categories.add(cat)
-        return sorted(list(categories))
-    
+
+    def get_categories(self, top_n: int = 10) -> List[str]:
+        """
+        재생수 상위 top_n 곡에 등장하는 카테고리만 반환.
+        (랭킹에 노출된 곡들의 태그만 필터로 보여주기 위함)
+        top_n=None 이면 전체 곡 기준.
+        """
+        conn = self._conn()
+        if top_n:
+            cur = conn.execute(
+                "SELECT DISTINCT category FROM ("
+                "  SELECT category FROM playback ORDER BY play_count DESC, last_played DESC LIMIT ?"
+                ") WHERE category IS NOT NULL",
+                (top_n,),
+            )
+        else:
+            cur = conn.execute(
+                "SELECT DISTINCT category FROM playback WHERE category IS NOT NULL"
+            )
+        cats = {r["category"] for r in cur.fetchall() if r["category"]}
+        return sorted(cats)
+
     def get_all_items(self) -> Dict:
-        """전체 통계 반환"""
-        return self.stats
-    
+        conn = self._conn()
+        cur = conn.execute("SELECT * FROM playback")
+        return {r["video_id"]: self._row_to_dict(r) for r in cur.fetchall()}
+
+    def count_tracks(self) -> int:
+        conn = self._conn()
+        return conn.execute("SELECT COUNT(*) AS c FROM playback").fetchone()["c"]
+
     @staticmethod
     def _timestamp() -> str:
-        """현재 타임스탐프"""
         return datetime.utcnow().isoformat()
+
 
 # 전역 인스턴스
 stats = PlaybackStats("data")

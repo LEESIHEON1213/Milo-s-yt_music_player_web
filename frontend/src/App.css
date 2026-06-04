@@ -121,6 +121,15 @@ body {
   gap: 6px;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 제목 줄(마퀴 감싸는 flex div) 폭 가두기 — 모바일 튀어나감 방지 */
+.now-playing > div {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .now-playing .uploader {
@@ -444,6 +453,8 @@ body {
 .result-item .info {
   padding: 12px;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .result-item h4 {
@@ -561,9 +572,15 @@ body {
   font-weight: 600 !important;
   color: var(--section-text) !important;
   margin: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  text-decoration: none !important;
+  display: block !important;
+  cursor: pointer !important;
+}
+.queue-item a.title:hover {
+  text-decoration: underline !important;
+  color: #5562d6 !important;
 }
 
 .queue-item .uploader {
@@ -614,6 +631,9 @@ body {
   font-size: 15px !important;
   font-weight: 700 !important;
   background: transparent !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  text-decoration: none !important;
 }
 
 .queue-item .track-info .uploader {
@@ -914,6 +934,13 @@ body {
   .now-playing {
     font-size: 16px;
     min-height: 44px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .now-playing > div {
+    max-width: 100%;
+    overflow: hidden;
   }
 
   /* 컨트롤: 가로 1줄에 다 넣지 말고 모바일 친화적으로 줄바꿈 + 큰 터치영역 */
@@ -1020,50 +1047,72 @@ body {
     padding: 12px;
   }
 
-  /* 대기열/즐겨찾기 아이템: 화면 폭 안에 가두기 */
+  /* ════════════════════════════════════════════
+     모바일 전용 대기열/즐겨찾기 UI
+     [순위][썸네일][제목 — 넓게] 윗줄, 버튼들은 아랫줄로 자연 줄바꿈
+     제목이 한 글자씩 세로로 쪼개지지 않게 충분한 폭 보장
+     ════════════════════════════════════════════ */
   .queue-item {
-    padding: 10px !important;
-    gap: 7px !important;
-    flex-wrap: nowrap !important;
+    padding: clamp(8px, 3vw, 14px) !important;
+    gap: clamp(8px, 2.5vw, 12px) !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
   }
 
   .queue-item .index {
-    min-width: 30px !important;
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 12px !important;
+    min-width: clamp(28px, 8vw, 36px) !important;
+    width: clamp(28px, 8vw, 36px) !important;
+    height: clamp(28px, 8vw, 36px) !important;
+    font-size: clamp(11px, 3.2vw, 14px) !important;
+    flex: 0 0 auto !important;
   }
 
   .queue-item .queue-thumb {
-    width: 42px !important;
-    height: 42px !important;
+    width: clamp(44px, 13vw, 60px) !important;
+    height: clamp(44px, 13vw, 60px) !important;
+    flex: 0 0 auto !important;
   }
 
+  /* 제목 영역: 남은 폭 다 쓰되 최소 폭 확보 → 글자 세로 쪼개짐 방지.
+     flex-basis를 넉넉히 줘서 항상 한 줄에 글자가 흐르게. */
   .queue-item .track-info {
-    margin: 0 4px !important;
-    min-width: 0 !important;
+    flex: 1 1 55% !important;
+    min-width: clamp(120px, 45vw, 220px) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
   }
 
   .queue-item .track-info .title {
-    font-size: 13px !important;
+    font-size: clamp(13px, 3.8vw, 15px) !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+    display: block !important;
   }
 
   .queue-item .track-info .uploader {
-    font-size: 11px !important;
+    font-size: clamp(11px, 3vw, 13px) !important;
+    white-space: normal !important;
   }
 
-  /* 버튼: 정사각 아이콘 크기로 압축해 줄 안에 다 들어가게 */
+  /* 버튼 3개: 한 묶음처럼 우측/아랫줄에 모이게. 압축 안 함. */
   .queue-item button {
     padding: 0 !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    font-size: 15px !important;
+    width: clamp(38px, 11vw, 46px) !important;
+    height: clamp(38px, 11vw, 46px) !important;
+    min-width: clamp(38px, 11vw, 46px) !important;
+    font-size: clamp(15px, 4.2vw, 18px) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    flex-shrink: 0 !important;
-    border-radius: 8px !important;
+    flex: 0 0 auto !important;
+    border-radius: 10px !important;
+    margin-left: auto !important;
+  }
+  /* 첫 버튼만 margin-left:auto로 오른쪽 밀기, 나머지는 붙임 */
+  .queue-item button ~ button {
+    margin-left: 0 !important;
   }
 }
 

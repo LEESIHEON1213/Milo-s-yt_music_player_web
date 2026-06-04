@@ -98,7 +98,6 @@ export default function CategoryRanking({ selectedCategory, onPlayTrack, onAddQu
                     </a>
                     <div className="uploader" title={track.uploader}>
                       {track.uploader}
-                      <span className="plays-inline">▶ {track.play_count}회</span>
                     </div>
                   </div>
 
