@@ -6,9 +6,9 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
 [![YouTube API](https://img.shields.io/badge/YouTube_Data_API-v3-FF0000?style=flat-square&logo=youtube)](https://developers.google.com/youtube/v3)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Web-00c896?style=flat-square)](https://milo-player.duckdns.org/)
+[![Platform](https://img.shields.io/badge/Platform-Web-00c896?style=flat-square)](https://milo-player.duckdns.org)
 
-**[🌐 지금 접속하기](https://milo-player.duckdns.org/)** · **[🐛 문제 신고](../../issues)**
+**[🌐 지금 접속하기](https://milo-player.duckdns.org)** · **[🐛 문제 신고](../../issues)**
 
 </div>
 

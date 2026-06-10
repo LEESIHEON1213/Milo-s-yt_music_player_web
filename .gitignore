@@ -64,3 +64,6 @@ data/playback_stats.db
 data/playback_stats.db-wal
 data/playback_stats.db-shm
 data/*.migrated
+
+# .env 는 무시하되 예시 파일은 추적
+!.env.example

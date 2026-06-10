@@ -41,7 +41,6 @@ export default function CategoryRanking({ selectedCategory, onPlayTrack, onAddQu
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       fetchRanking(newPage)
-      window.scrollTo(0, 0)
     }
   }
 
